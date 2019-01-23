@@ -9,9 +9,9 @@
     </div>
     <scroll :data="songs" class="list" ref="list">
       <div class="song-list-wrapper">
-        <song-list :songs="songs" > </song-list>
+        <song-list :songs="songs"></song-list>
       </div>
-    </scroll> 
+    </scroll>
   </div>
 </template>
 <script>
@@ -37,8 +37,8 @@ export default {
       return `background-image:url(${this.bgImage})`;
     }
   },
-  mounted(){
-    this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`
+  mounted() {
+    this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`;
   },
   components: {
     Scroll,
