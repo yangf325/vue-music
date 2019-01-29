@@ -1,7 +1,7 @@
 <template>
   <div class="song-list">
     <ul>
-      <li v-for="song in songs" class="item">
+      <li v-for="song,index in songs" class="item" @click="selectItem(song,index)">
         <div class="content">
           <h2 class="name">{{song.name}}</h2>
           <p class="desc">{{getDesc(song)}}</p>
@@ -19,8 +19,11 @@ export default {
     }
   },
   methods: {
-    getDesc(song){
-      return `${song.singer}.${song.album}`
+    getDesc(song) {
+      return `${song.singer}.${song.album}`;
+    },
+    selectItem(item, index) {
+      this.$emit("selectItem", item, index);
     }
   }
 };
@@ -36,6 +39,7 @@ export default {
     box-sizing: border-box;
     height: 64px;
     font-size: $font-size-medium;
+
     .rank {
       flex: 0 0 25px;
       width: 25px;
@@ -47,18 +51,6 @@ export default {
         width: 25px;
         height: 24px;
         background-size: 25px 24px;
-
-        // &.icon0 {
-        //   bg-image('first');
-        // }
-
-        // &.icon1 {
-        //   bg-image('second');
-        // }
-
-        // &.icon2 {
-        //   bg-image('third');
-        // }
       }
 
       .text {
