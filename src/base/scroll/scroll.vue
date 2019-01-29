@@ -21,7 +21,7 @@ export default {
       });
       if (this.listenScroll) {
         let _this = this;
-        this.scroll.on("scroll", pos => {
+        this.scroll.on("scroll", (pos) => {
           _this.$emit("scroll", pos);
         });
       }
