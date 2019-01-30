@@ -1,6 +1,12 @@
 <template>
-  <div class="player" v-if="playList.length>0">
-    <transition name="normal">
+  <div class="player" v-show="playlist.length>0">
+    <transition
+      name="normal"
+      @enter="enter"
+      @after-enter="afterEnter"
+      @leave="leave"
+      @after-leave="afterLeave"
+    >
       <div class="normal-player" v-show="fullScreen">
         <div class="background">
           <img width="100%" height="100%" :src="currentSong.image">
@@ -14,7 +20,7 @@
         </div>
         <div class="middle">
           <div class="middle-l">
-            <div class="cd-wrapper">
+            <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd">
                 <img :src="currentSong.image" class="image">
               </div>
@@ -62,7 +68,7 @@
 
 <script type="text/ecmascript-6">
 import { mapGetters, mapMutations, mapActions } from "vuex";
-//   import animations from 'create-keyframe-animation'
+import animations from "create-keyframe-animation";
 import { prefixStyle } from "common/js/dom";
 //   import ProgressBar from 'base/progress-bar/progress-bar'
 //   import ProgressCircle from 'base/progress-circle/progress-circle'
@@ -71,15 +77,17 @@ import { playMode } from "common/js/config";
 import Scroll from "base/scroll/scroll";
 //   import {playerMixin} from 'common/js/mixin'
 //   import Playlist from 'components/playlist/playlist'
+
+const transform = prefixStyle("transform");
 export default {
   created() {
-    console.log(this.currentSong);
+    // console.log(animations);
   },
   data() {
     return {};
   },
   computed: {
-    ...mapGetters(["currentSong", "fullScreen", "playList"])
+    ...mapGetters(["currentSong", "fullScreen", "playlist"])
   },
   methods: {
     back() {
@@ -87,6 +95,53 @@ export default {
     },
     open() {
       this.setFullScreen(true);
+    },
+    enter(el, done) {
+      let animation = {
+        0: {
+          transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
+        },
+        60: {
+          transform: `translate3d(0,0,0) scale(1.1)`
+        },
+        100: {
+          transform: `translate3d(0,0,0) scale(1)`
+        }
+      };
+      animations.registerAnimation({
+        name: "move",
+        animation,
+        presets: {
+          duration: 400,
+          easing: "linear"
+        }
+      });
+      console.log(animation);
+      animations.runAnimation(this.$refs.cdWrapper, "move", done);
+    },
+    afterEnter(el, done) {
+      animations.unregisterAnimation("move", done);
+      this.$refs.cdWrapper.style.animation = "";
+    },
+    leave(el, done) {
+      this.$refs.cdWrapper.style.transition = "all 0.4s";
+      this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`;
+      this.$refs.cdWrapper.addEventListener("transitionend", done);
+    },
+    afterLeave(el, done) {
+      this.$refs.cdWrapper.style.transition = "";
+      this.$refs.cdWrapper.style[transform] = "";
+    },
+    _getPosAndScale() {
+      const targetWidth = 40;//mini img宽度
+      const paddingLeft = 40;//mini img中心到左边屏幕边缘
+      const paddingBottom = 30;//mini img中心到底部屏幕边缘
+      const paddingTop = 80;//大图到屏幕顶部距离
+      const width = window.innerWidth * 0.8;//大图宽度
+      const scale = targetWidth / width;//初始缩放
+      const x = -(window.innerWidth / 2 - paddingLeft);//mini 初始x偏移量
+      const y = window.innerHeight - paddingTop - width / 2 - paddingBottom;//mini初始y偏移量
+      return { x, y, scale };
     },
     ...mapMutations({
       setFullScreen: "SET_FULL_SCREEN"
