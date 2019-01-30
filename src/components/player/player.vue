@@ -1,5 +1,5 @@
 <template>
-  <div class="player" v-show="playlist.length>0">
+  <div class="player" v-if="playlist.length>0">
     <transition
       name="normal"
       @enter="enter"
@@ -21,7 +21,7 @@
         <div class="middle">
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
+              <div class="cd" :class="cdCls">
                 <img :src="currentSong.image" class="image">
               </div>
             </div>
@@ -35,8 +35,8 @@
             <div class="icon i-left">
               <i class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
-              <i class="icon-play"></i>
+            <div class="icon i-center" @click="toggle">
+              <i :class="playIcon"></i>
             </div>
             <div class="icon i-right">
               <i class="icon-next"></i>
@@ -51,18 +51,21 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image">
+          <img width="40" height="40" :src="currentSong.image" :class="cdCls">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
           <p class="desc" v-html="currentSong.name"></p>
         </div>
-        <div class="control"></div>
+        <div class="control" @click.stop="toggle">
+          <i :class="miniIcon"></i>
+        </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio :src="currentSong.url" ref="audio"></audio>
   </div>
 </template>
 
@@ -87,7 +90,16 @@ export default {
     return {};
   },
   computed: {
-    ...mapGetters(["currentSong", "fullScreen", "playlist"])
+    playIcon() {
+      return this.playing ? "icon-pause" : "icon-play";
+    },
+    miniIcon() {
+      return this.playing ? "icon-pause-mini" : "icon-play-mini";
+    },
+    cdCls(){
+      return this.playing ? "play" : "play-pause";
+    },
+    ...mapGetters(["currentSong", "fullScreen", "playlist", "playing"])
   },
   methods: {
     back() {
@@ -96,7 +108,12 @@ export default {
     open() {
       this.setFullScreen(true);
     },
+    toggle() {
+      this.setPlayingState(!this.playing);
+    },
+    //展开的动画
     enter(el, done) {
+      const { x, y, scale } = this._getPosAndScale();
       let animation = {
         0: {
           transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
@@ -119,33 +136,51 @@ export default {
       console.log(animation);
       animations.runAnimation(this.$refs.cdWrapper, "move", done);
     },
-    afterEnter(el, done) {
-      animations.unregisterAnimation("move", done);
+    afterEnter() {
+      animations.unregisterAnimation("move");
       this.$refs.cdWrapper.style.animation = "";
     },
+    //关闭的动画
     leave(el, done) {
       this.$refs.cdWrapper.style.transition = "all 0.4s";
-      this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`;
+      const { x, y, scale } = this._getPosAndScale();
+      this.$refs.cdWrapper.style[
+        transform
+      ] = `translate3d(${x}px,${y}px,0) scale(${scale})`;
       this.$refs.cdWrapper.addEventListener("transitionend", done);
     },
-    afterLeave(el, done) {
+    afterLeave() {
       this.$refs.cdWrapper.style.transition = "";
       this.$refs.cdWrapper.style[transform] = "";
     },
     _getPosAndScale() {
-      const targetWidth = 40;//mini img宽度
-      const paddingLeft = 40;//mini img中心到左边屏幕边缘
-      const paddingBottom = 30;//mini img中心到底部屏幕边缘
-      const paddingTop = 80;//大图到屏幕顶部距离
-      const width = window.innerWidth * 0.8;//大图宽度
-      const scale = targetWidth / width;//初始缩放
-      const x = -(window.innerWidth / 2 - paddingLeft);//mini 初始x偏移量
-      const y = window.innerHeight - paddingTop - width / 2 - paddingBottom;//mini初始y偏移量
+      const targetWidth = 40; //mini img宽度
+      const paddingLeft = 40; //mini img中心到左边屏幕边缘
+      const paddingBottom = 30; //mini img中心到底部屏幕边缘
+      const paddingTop = 80; //大图到屏幕顶部距离
+      const width = window.innerWidth * 0.8; //大图宽度
+      const scale = targetWidth / width; //初始缩放
+      const x = -(window.innerWidth / 2 - paddingLeft); //mini 初始x偏移量
+      const y = window.innerHeight - paddingTop - width / 2 - paddingBottom; //mini初始y偏移量
       return { x, y, scale };
     },
     ...mapMutations({
-      setFullScreen: "SET_FULL_SCREEN"
+      setFullScreen: "SET_FULL_SCREEN",
+      setPlayingState: "SET_PLAYING_STATE"
     })
+  },
+  watch: {
+    currentSong() {
+      this.$nextTick(() => {
+        this.$refs.audio.play();
+      });
+    },
+    playing(newPlaying) {
+      const audio = this.$refs.audio;
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause();
+      });
+    }
   }
 };
 </script>
