@@ -110,7 +110,6 @@ export default {
       this.$router.back();
     },
     selectItem(item, index) {
-      console.log("clickName",this.songs[index].name);
       this.selectPlay({
         list: this.songs,
         index

@@ -26,8 +26,6 @@ const mutations = {
 }
 export default mutations
 
-
-
 //播放器属性
 export const playing = state => state.playing
 export const fullScreen = state => state.fullScreen
