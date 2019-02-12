@@ -1,5 +1,5 @@
 <template>
-  <div class="player" v-if="playlist.length>0">
+  <div class="player" v-show="playlist.length>0">
     <transition
       name="normal"
       @enter="enter"
@@ -39,8 +39,8 @@
           </div>
           <!-- 控制按钮 -->
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" @click="changeMode">
+              <i :class="iconMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls" @click="prev">
               <i class="icon-prev"></i>
@@ -83,6 +83,7 @@
       @canplay="ready"
       @error="error"
       @timeupdate="updateTime"
+      @ended="end"
     ></audio>
   </div>
 </template>
@@ -94,6 +95,7 @@ import { prefixStyle } from "common/js/dom";
 import ProgressBar from "base/progress-bar/progress-bar";
 import ProgressCircle from "base/progress-circle/progress-circle";
 import { playMode } from "common/js/config";
+import { shuffle } from "common/js/util";
 //   import Lyric from 'lyric-parser'
 import Scroll from "base/scroll/scroll";
 //   import {playerMixin} from 'common/js/mixin'
@@ -110,6 +112,13 @@ export default {
     };
   },
   computed: {
+    iconMode() {
+      return this.mode === playMode.sequence
+        ? "icon-sequence"
+        : this.mode === playMode.loop
+        ? "icon-loop"
+        : "icon-random";
+    },
     playIcon() {
       return this.playing ? "icon-pause" : "icon-play";
     },
@@ -124,7 +133,9 @@ export default {
       "fullScreen",
       "playlist",
       "playing",
-      "currentIndex"
+      "currentIndex",
+      "mode",
+      "sequencedList"
     ]),
     disableCls() {
       return this.songReady ? "" : "disable";
@@ -134,24 +145,58 @@ export default {
     }
   },
   methods: {
+    //单首播放完毕切换到下一首
+    end() {
+      if (this.mode === playMode.loop) {
+        this.loop();
+      } else {
+        this.next();
+      }
+    },
+    //切换播放模式按钮,如果是随机播放模式则设置sequencedList为混乱的列表
+    changeMode() {
+      const mode = (this.mode + 1) % 3;
+      this.setPlayMode(mode);
+      let list = null;
+      if (mode === playMode.random) {
+        list = shuffle(this.sequencedList);
+      } else {
+        list = this.sequencedList;
+      }
+      this.resetCurrentIndex(list);
+      this.setPlayList(list);
+    },
+    //重新设置index以免切换到随机播放模式的时候list[index]更改,导致音乐切换
+    resetCurrentIndex(list) {
+      let index = list.findIndex(item => {
+        return item.id === this.currentSong.id;
+      });
+      this.setCurrentIndex(index);
+    },
+    //缩小播放器
     back() {
       this.setFullScreen(false);
     },
+    //打开播放器
     open() {
       this.setFullScreen(true);
     },
+    //切换播放暂停
     toggle() {
       this.setPlayingState(!this.playing);
     },
+    //点击进度条
     updateTime(e) {
       this.currentTime = e.target.currentTime;
     },
+    //格式化时间戳
     format(interval) {
       interval = interval | 0;
       const minute = (interval / 60) | 0;
       const second = this._pad(interval % 60);
       return `${minute}:${second}`;
     },
+    // 时间戳秒个位数增加0
     _pad(num, n = 2) {
       let len = num.toString().length;
       while (len < n) {
@@ -215,7 +260,9 @@ export default {
     ...mapMutations({
       setFullScreen: "SET_FULL_SCREEN",
       setPlayingState: "SET_PLAYING_STATE",
-      setCurrentIndex: "SET_CURRENT_INDEX"
+      setCurrentIndex: "SET_CURRENT_INDEX",
+      setPlayMode: "SET_PLAY_MODE",
+      setPlayList: "SET_PLAYLIST"
     }),
     prev() {
       if (!this.songReady) {
@@ -245,6 +292,10 @@ export default {
         this.toggle();
       }
     },
+    loop() {
+      this.$refs.audio.currentTime = 0;
+      this.$refs.audio.play();
+    },
     ready() {
       this.songReady = true;
     },
@@ -256,7 +307,10 @@ export default {
     }
   },
   watch: {
-    currentSong() {
+    currentSong(newSong, oldSong) {
+      if (oldSong && newSong.id === oldSong.id) {
+        return false;
+      }
       this.$nextTick(() => {
         this.$refs.audio.play();
       });

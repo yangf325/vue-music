@@ -6,7 +6,7 @@
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="play-wrapper" ref="playBtn">
-        <div class="play" v-show="songs.length>0">
+        <div class="play" v-show="songs.length>0" @click="random">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -100,6 +100,9 @@ export default {
     }
   },
   methods: {
+    random() {
+      this.randomPlay({ list: this.songs });
+    },
     scroll(pos) {
       this.scrollY = pos.y;
     },
@@ -107,15 +110,13 @@ export default {
       this.$router.back();
     },
     selectItem(item, index) {
-      console.log(item);
+      console.log("clickName",this.songs[index].name);
       this.selectPlay({
-        list:this.songs,
+        list: this.songs,
         index
-      })
+      });
     },
-    ...mapActions([
-      'selectPlay'
-    ])
+    ...mapActions(["selectPlay", "randomPlay"])
   },
   mounted() {
     this.imageHeight = this.$refs.bgImage.clientHeight;

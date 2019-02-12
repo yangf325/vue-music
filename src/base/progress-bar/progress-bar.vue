@@ -70,6 +70,7 @@ export default {
     },
     //点击滚动栏直接跳到新的百分比
     progressClick(e){
+      // console.log(e.offsetX);
       this._offset(e.offsetX)
       this._trigerPercent();
     }
