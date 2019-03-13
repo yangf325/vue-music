@@ -2,7 +2,7 @@ import jsonp from 'common/js/jsonp'
 import {
   commonParams
 } from './config'
-import Axios from 'axios';
+import axios from 'axios';
 
 export function getLyric(mid) {
   const url = '/api/lyric'
