@@ -9,9 +9,11 @@ import { getSingerList } from "api/singer";
 import { ERR_OK } from "api/config";
 import listview from "base/listview/listview";
 import singerClass from "common/js/singerClass";
+import { playlistMixin } from "common/js/mixin";
 import {mapMutations} from "vuex"
 
 export default {
+  mixins: [playlistMixin],
   data() {
     return {
       singers: [],
@@ -20,6 +22,11 @@ export default {
   },
   components: { listview },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? "50px" : "";
+      this.$refs.singer.style.bottom = bottom;
+      this.$refs.list.refresh();
+    },
     _getSingerList() {
       getSingerList().then(data => {
         if (data.code === ERR_OK) {

@@ -1,40 +1,41 @@
 <template>
-<div class="recommend"  ref="recommend">
-  <scroll class="recommend-content" ref="scroll" :data="discList">
-    <div>
-      <div v-if="recommends.length" class="slider-wrapper" ref="sliderWrapper">
-        <slider>
-          <div v-for="item in recommends">
-            <a :href="item.linkUrl">
-              <img :src="item.picUrl" class="needsclick" @load="loadImage">
-            </a>
-          </div>
-        </slider>
-      </div>
-      <div class="recommend-list">
-        <h1 class="list-title">热门歌单推荐</h1>
-        <ul>
-          <li @click="selectItem(item)" v-for="item in discList" class="item">
-            <div class="icon">
-              <img width="60" height="60" v-lazy="item.imgurl">
+  <div class="recommend" ref="recommend">
+    <scroll class="recommend-content" ref="scroll" :data="discList">
+      <div>
+        <div v-if="recommends.length" class="slider-wrapper" ref="sliderWrapper">
+          <slider>
+            <div v-for="item in recommends">
+              <a :href="item.linkUrl">
+                <img :src="item.picUrl" class="needsclick" @load="loadImage">
+              </a>
             </div>
-            <div class="text">
-              <h2 class="name" v-html="item.creator.name"></h2>
-              <p class="desc" v-html="item.dissname"></p>
-            </div>
-          </li>
-        </ul>
+          </slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li @click="selectItem(item)" v-for="item in discList" class="item">
+              <div class="icon">
+                <img width="60" height="60" v-lazy="item.imgurl">
+              </div>
+              <div class="text">
+                <h2 class="name" v-html="item.creator.name"></h2>
+                <p class="desc" v-html="item.dissname"></p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
-    <loading class="loading-container" v-if="!discList.length"></loading>
-  </scroll>
-</div>
+      <loading class="loading-container" v-if="!discList.length"></loading>
+    </scroll>
+  </div>
 </template>
 <script type='text/ecmascript-6'>
 import { getRecommend } from "api/recommend";
 import { getDiscList } from "api/recommend";
 import Slider from "base/slider/slider";
 import Scroll from "base/scroll/scroll";
+import { playlistMixin } from "common/js/mixin";
 import Loading from "base/loading/loading";
 export default {
   data() {
@@ -44,8 +45,14 @@ export default {
       checkLoaded: false
     };
   },
+  mixins: [playlistMixin],
   components: { Slider, Scroll, Loading },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? "50px" : "";
+      this.$refs.recommend.style.bottom = bottom;
+      this.$refs.scroll.refresh();
+    },
     _getRecommend() {
       getRecommend().then(res => {
         if (res.code == 0) {

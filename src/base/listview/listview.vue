@@ -62,6 +62,9 @@ export default {
     scroll(pos) {
       this.scrollY = pos.y;
     },
+    refresh(){
+      this.$refs.listview.refresh();
+    },
     // 歌手选中事件
     selectItem(item) {
       this.$emit("select", item);
