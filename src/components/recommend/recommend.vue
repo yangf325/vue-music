@@ -28,6 +28,7 @@
       </div>
       <loading class="loading-container" v-if="!discList.length"></loading>
     </scroll>
+    <router-view></router-view>
   </div>
 </template>
 <script type='text/ecmascript-6'>
@@ -36,6 +37,7 @@ import { getDiscList } from "api/recommend";
 import Slider from "base/slider/slider";
 import Scroll from "base/scroll/scroll";
 import { playlistMixin } from "common/js/mixin";
+import { mapMutations } from "vuex";
 import Loading from "base/loading/loading";
 export default {
   data() {
@@ -67,12 +69,20 @@ export default {
         }
       });
     },
-    selectItem() {},
+    selectItem(item) {
+      this.$router.push({
+        path: `/recommend/${item.dissid}`
+      });
+      this.setDisc(item);
+    },
     loadImage() {
       setTimeout(() => {
         this.$refs.scroll.refresh();
       }, 20);
-    }
+    },
+    ...mapMutations({
+      setDisc: "SET_DISC"
+    })
   },
   created() {
     this._getRecommend();
