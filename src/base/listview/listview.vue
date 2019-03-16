@@ -12,13 +12,13 @@
         <h2 class="list-group-title">{{group.title}}</h2>
         <uL>
           <li @click="selectItem(item)" v-for="item in group.items" class="list-group-item">
-            <img class="avatar" v-lazy="item.avatar">
+            <img class="avatar" v-lazy="item.avatar"> 
             <span class="name">{{item.name}}</span>
           </li>
         </uL>
       </li>
     </ul>
-    <div class="list-shortcut">
+    <div class="list-shortcut"> 
       <ul>
         <li
           @touchstart="onShortcutTouchStart"
@@ -45,7 +45,7 @@ export default {
   props: {
     data: {
       type: Array,
-      default: []
+      default: [],
     }
   },
   data() {
